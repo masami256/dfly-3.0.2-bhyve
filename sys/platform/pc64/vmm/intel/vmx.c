@@ -31,7 +31,6 @@
 
 #include <sys/param.h>
 #include <sys/systm.h>
-#include <sys/smp.h>
 #include <sys/kernel.h>
 #include <sys/malloc.h>
 #include <sys/pcpu.h>
@@ -40,6 +39,7 @@
 #include <vm/vm.h>
 #include <vm/pmap.h>
 
+#include <machine/smp.h>
 #include <machine/psl.h>
 #include <machine/cpufunc.h>
 #include <machine/md_var.h>

@@ -33,11 +33,11 @@
 #include <sys/errno.h>
 #include <sys/systm.h>
 #include <sys/malloc.h>
-#include <sys/smp.h>
 
 #include <vm/vm.h>
 #include <vm/pmap.h>
 
+#include <machine/smp.h>
 #include <machine/param.h>
 #include <machine/cpufunc.h>
 #include <machine/pmap.h>

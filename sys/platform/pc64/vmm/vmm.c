@@ -40,11 +40,11 @@
 #include <sys/mutex.h>
 #include <sys/proc.h>
 #include <sys/sched.h>
-#include <sys/smp.h>
 #include <sys/systm.h>
 
 #include <vm/vm.h>
 
+#include <machine/smp.h>
 #include <machine/vm.h>
 #include <machine/pcb.h>
 #include <x86/apicreg.h>

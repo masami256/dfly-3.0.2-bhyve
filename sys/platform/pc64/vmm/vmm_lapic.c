@@ -31,8 +31,8 @@
 
 #include <sys/param.h>
 #include <sys/systm.h>
-#include <sys/smp.h>
 
+#include <machine/smp.h>
 #include <machine/vmm.h>
 #include "vmm_ipi.h"
 #include "vmm_lapic.h"
