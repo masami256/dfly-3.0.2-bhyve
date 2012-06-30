@@ -160,6 +160,31 @@ kern/subr_diskgpt.c			standard
 libkern/memset.c			standard
 libkern/stack_protector.c		standard
 
+# VMM
+#platform/pc64/vmm/amd/amdv.c		optional	vmm
+platform/pc64/vmm/intel/ept.c		optional	vmm
+platform/pc64/vmm/intel/evmcs.c		optional        vmm
+platform/pc64/vmm/intel/evmx_assym.s	optional        vmm
+platform/pc64/vmm/intel/evmx.c		optional        vmm
+platform/pc64/vmm/intel/evmx_genassym.c	optional        vmm
+platform/pc64/vmm/intel/evmx_msr.c	optional        vmm
+platform/pc64/vmm/intel/evmx_support.S	optional        vmm
+platform/pc64/vmm/intel/evtd.c		optional        vmm
+platform/pc64/vmm/io/iommu.c		optional        vmm
+platform/pc64/vmm/io/ppt.c		optional        vmm
+platform/pc64/vmm/io/vdev.c		optional        vmm
+platform/pc64/vmm/io/vlapic.c		optional        vmm
+platform/pc64/vmm/vmm.c			optional        vmm
+platform/pc64/vmm/vmm_dev.c		optional        vmm
+platform/pc64/vmm/vmm_ipi.c		optional        vmm
+platform/pc64/vmm/vmm_lapic.c		optional        vmm
+platform/pc64/vmm/vmm_mem.c		optional        vmm`
+platform/pc64/vmm/vmm_msr.c		optional        vmm
+platform/pc64/vmm/vmm_stat.c		optional        vmm
+platform/pc64/vmm/vmm_support.S		optional        vmm
+platform/pc64/vmm/vmm_util.c		optional        vmm
+platform/pc64/vmm/x86.c			optional        vmm
+
 # DEVICES
 #
 
