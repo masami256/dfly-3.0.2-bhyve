@@ -250,7 +250,7 @@ vlapic_start_timer(struct vlapic *vlapic, uint32_t elapsed)
 	}
 }
 
-static __inline uint32_t *
+static inline uint32_t *
 vlapic_get_lvt(struct vlapic *vlapic, uint32_t offset)
 {
 	struct LAPIC	*lapic = &vlapic->apic;
@@ -378,13 +378,13 @@ vlapic_process_eoi(struct vlapic *vlapic)
 	}
 }
 
-static __inline int
+static inline int
 vlapic_get_lvt_field(uint32_t *lvt, uint32_t mask)
 {
 	return (*lvt & mask);
 }
 
-static __inline int
+static inline int
 vlapic_periodic_timer(struct vlapic *vlapic)
 {
 	uint32_t *lvt;

@@ -46,7 +46,7 @@ static boolean_t iommu_avail;
 static struct iommu_ops *ops;
 static void *host_domain;
 
-static __inline int
+static inline int
 IOMMU_INIT(void)
 {
 	if (ops != NULL)
@@ -55,14 +55,14 @@ IOMMU_INIT(void)
 		return (ENXIO);
 }
 
-static __inline void
+static inline void
 IOMMU_CLEANUP(void)
 {
 	if (ops != NULL && iommu_avail)
 		(*ops->cleanup)();
 }
 
-static __inline void *
+static inline void *
 IOMMU_CREATE_DOMAIN(vm_paddr_t maxaddr)
 {
 
@@ -72,7 +72,7 @@ IOMMU_CREATE_DOMAIN(vm_paddr_t maxaddr)
 		return (NULL);
 }
 
-static __inline void
+static inline void
 IOMMU_DESTROY_DOMAIN(void *dom)
 {
 
@@ -80,7 +80,7 @@ IOMMU_DESTROY_DOMAIN(void *dom)
 		(*ops->destroy_domain)(dom);
 }
 
-static __inline uint64_t
+static inline uint64_t
 IOMMU_CREATE_MAPPING(void *domain, vm_paddr_t gpa, vm_paddr_t hpa, uint64_t len)
 {
 
@@ -90,7 +90,7 @@ IOMMU_CREATE_MAPPING(void *domain, vm_paddr_t gpa, vm_paddr_t hpa, uint64_t len)
 		return (len);		/* XXX */
 }
 
-static __inline void
+static inline void
 IOMMU_ADD_DEVICE(void *domain, int bus, int slot, int func)
 {
 
@@ -98,7 +98,7 @@ IOMMU_ADD_DEVICE(void *domain, int bus, int slot, int func)
 		(*ops->add_device)(domain, bus, slot, func);
 }
 
-static __inline void
+static inline void
 IOMMU_REMOVE_DEVICE(void *domain, int bus, int slot, int func)
 {
 
@@ -106,7 +106,7 @@ IOMMU_REMOVE_DEVICE(void *domain, int bus, int slot, int func)
 		(*ops->remove_device)(domain, bus, slot, func);
 }
 
-static __inline void
+static inline void
 IOMMU_ENABLE(void)
 {
 
@@ -114,7 +114,7 @@ IOMMU_ENABLE(void)
 		(*ops->enable)();
 }
 
-static __inline void
+static inline void
 IOMMU_DISABLE(void)
 {
 

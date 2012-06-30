@@ -56,7 +56,7 @@ struct vmcs;
 	} while (0)
 
 /* returns 0 on success and non-zero on failure */
-static __inline int
+static inline int
 vmxon(char *region)
 {
 	int error;
@@ -69,7 +69,7 @@ vmxon(char *region)
 }
 
 /* returns 0 on success and non-zero on failure */
-static __inline int
+static inline int
 vmclear(struct vmcs *vmcs)
 {
 	int error;
@@ -81,19 +81,19 @@ vmclear(struct vmcs *vmcs)
 	return (error);
 }
 
-static __inline void
+static inline void
 vmxoff(void)
 {
 	__asm __volatile("vmxoff");
 }
 
-static __inline void
+static inline void
 vmptrst(uint64_t *addr)
 {
 	__asm __volatile("vmptrst %0" : : "m" (*addr) : "memory");
 }
 
-static __inline int
+static inline int
 vmptrld(struct vmcs *vmcs)
 {
 	int error;
@@ -105,7 +105,7 @@ vmptrld(struct vmcs *vmcs)
 	return (error);
 }
 
-static __inline int
+static inline int
 vmwrite(uint64_t reg, uint64_t val)
 {
 	int error;
@@ -117,7 +117,7 @@ vmwrite(uint64_t reg, uint64_t val)
 	return (error);
 }
 
-static __inline int
+static inline int
 vmread(uint64_t r, uint64_t *addr)
 {
 	int error;
@@ -129,7 +129,7 @@ vmread(uint64_t r, uint64_t *addr)
 	return (error);
 }
 
-static void __inline
+static inline void 
 VMCLEAR(struct vmcs *vmcs)
 {
 	int err;
@@ -141,7 +141,7 @@ VMCLEAR(struct vmcs *vmcs)
 	critical_exit();
 }
 
-static void __inline
+static void inline
 VMPTRLD(struct vmcs *vmcs)
 {
 	int err;
@@ -165,7 +165,7 @@ struct invvpid_desc {
 };
 CTASSERT(sizeof(struct invvpid_desc) == 16);
 
-static void __inline
+static inline void 
 invvpid(uint64_t type, struct invvpid_desc desc)
 {
 	int error;
@@ -185,7 +185,7 @@ struct invept_desc {
 };
 CTASSERT(sizeof(struct invept_desc) == 16);
 
-static void __inline
+static inline void 
 invept(uint64_t type, struct invept_desc desc)
 {
 	int error;

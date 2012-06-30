@@ -132,7 +132,7 @@ int vm_get_run_state(struct vm *vm, int vcpu, int *hostcpu);
 
 void *vcpu_stats(struct vm *vm, int vcpu);
 
-static int __inline
+static inline int 
 vcpu_is_running(struct vm *vm, int vcpu, int *hostcpu)
 {
 	return (vm_get_run_state(vm, vcpu, hostcpu) == VCPU_RUNNING);

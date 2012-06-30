@@ -58,7 +58,7 @@ void 	vmm_stat_free(void *vp);
 int	vmm_stat_copy(struct vm *vm, int vcpu, int *num_stats, uint64_t *buf);
 const char *vmm_stat_desc(int index);
 
-static void __inline
+static inline void 
 vmm_stat_incr(struct vm *vm, int vcpu, struct vmm_stat_type *vst, uint64_t x)
 {
 #ifdef	VMM_KEEP_STATS
