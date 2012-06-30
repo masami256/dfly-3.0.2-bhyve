@@ -14,3 +14,4 @@
 .*.sw[po]
 .sw[po]
 cscope.*
+tags
