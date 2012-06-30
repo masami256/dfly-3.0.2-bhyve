@@ -146,6 +146,10 @@ struct cdev;
 typedef	u_int32_t	udev_t;		/* device number */
 typedef struct cdev	*cdev_t;
 
+/*
+ * Add some definitions to build BHyVe.
+ */
+typedef char	vm_memattr_t;
 #endif
 
 /*
