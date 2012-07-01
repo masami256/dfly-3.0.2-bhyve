@@ -30,6 +30,7 @@
 #define	_VMM_H_
 
 #include <sys/cpuset.h>
+#include <sys/cdefs.h>
 
 #ifdef _KERNEL
 
@@ -132,7 +133,7 @@ int vm_get_run_state(struct vm *vm, int vcpu, int *hostcpu);
 
 void *vcpu_stats(struct vm *vm, int vcpu);
 
-static inline int 
+static __inline int 
 vcpu_is_running(struct vm *vm, int vcpu, int *hostcpu)
 {
 	return (vm_get_run_state(vm, vcpu, hostcpu) == VCPU_RUNNING);

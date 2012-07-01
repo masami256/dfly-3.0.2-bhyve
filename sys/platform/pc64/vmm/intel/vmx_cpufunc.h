@@ -29,6 +29,7 @@
 #ifndef	_VMX_CPUFUNC_H_
 #define	_VMX_CPUFUNC_H_
 
+#include <sys/cdefs.h>
 #include <sys/thread2.h>
 
 struct vmcs;
@@ -58,7 +59,7 @@ struct vmcs;
 	} while (0)
 
 /* returns 0 on success and non-zero on failure */
-static inline int
+static __inline int
 vmxon(char *region)
 {
 	int error;
@@ -71,7 +72,7 @@ vmxon(char *region)
 }
 
 /* returns 0 on success and non-zero on failure */
-static inline int
+static __inline int
 vmclear(struct vmcs *vmcs)
 {
 	int error;
@@ -83,19 +84,19 @@ vmclear(struct vmcs *vmcs)
 	return (error);
 }
 
-static inline void
+static __inline void
 vmxoff(void)
 {
 	__asm __volatile("vmxoff");
 }
 
-static inline void
+static __inline void
 vmptrst(uint64_t *addr)
 {
 	__asm __volatile("vmptrst %0" : : "m" (*addr) : "memory");
 }
 
-static inline int
+static __inline int
 vmptrld(struct vmcs *vmcs)
 {
 	int error;
@@ -107,7 +108,7 @@ vmptrld(struct vmcs *vmcs)
 	return (error);
 }
 
-static inline int
+static __inline int
 vmwrite(uint64_t reg, uint64_t val)
 {
 	int error;
@@ -119,7 +120,7 @@ vmwrite(uint64_t reg, uint64_t val)
 	return (error);
 }
 
-static inline int
+static __inline int
 vmread(uint64_t r, uint64_t *addr)
 {
 	int error;
@@ -131,7 +132,7 @@ vmread(uint64_t r, uint64_t *addr)
 	return (error);
 }
 
-static inline void 
+static __inline void
 VMCLEAR(struct vmcs *vmcs)
 {
 	int err;
@@ -143,7 +144,7 @@ VMCLEAR(struct vmcs *vmcs)
 	crit_exit();
 }
 
-static inline void 
+static __inline void
 VMPTRLD(struct vmcs *vmcs)
 {
 	int err;
@@ -167,7 +168,7 @@ struct invvpid_desc {
 };
 CTASSERT(sizeof(struct invvpid_desc) == 16);
 
-static inline void 
+static __inline void
 invvpid(uint64_t type, struct invvpid_desc desc)
 {
 	int error;
@@ -187,7 +188,7 @@ struct invept_desc {
 };
 CTASSERT(sizeof(struct invept_desc) == 16);
 
-static inline void 
+static __inline void 
 invept(uint64_t type, struct invept_desc desc)
 {
 	int error;

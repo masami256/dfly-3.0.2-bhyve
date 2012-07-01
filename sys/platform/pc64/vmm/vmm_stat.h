@@ -32,6 +32,8 @@
 #ifndef _VMM_STAT_H_
 #define	_VMM_STAT_H_
 
+#include <sys/cdefs.h>
+
 struct vm;
 
 #define	MAX_VMM_STAT_TYPES	64		/* arbitrary */
@@ -58,7 +60,7 @@ void 	vmm_stat_free(void *vp);
 int	vmm_stat_copy(struct vm *vm, int vcpu, int *num_stats, uint64_t *buf);
 const char *vmm_stat_desc(int index);
 
-static inline void 
+static __inline void 
 vmm_stat_incr(struct vm *vm, int vcpu, struct vmm_stat_type *vst, uint64_t x)
 {
 #ifdef	VMM_KEEP_STATS

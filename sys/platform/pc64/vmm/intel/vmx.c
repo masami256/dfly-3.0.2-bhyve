@@ -35,6 +35,7 @@
 #include <sys/malloc.h>
 #include <sys/pcpu.h>
 #include <sys/proc.h>
+#include <sys/cdefs.h>
 
 #include <vm/vm.h>
 #include <vm/pmap.h>
@@ -343,7 +344,7 @@ vmx_setjmp_trace(struct vmx *vmx, int vcpu, struct vmxctx *vmxctx, int rc)
 }
 #endif
 #else
-static inline void
+static __inline void
 vmx_setjmp_trace(struct vmx *vmx, int vcpu, struct vmxctx *vmxctx, int rc)
 {
 	return;
@@ -758,7 +759,7 @@ vmx_handle_cpuid(int vcpu, struct vmxctx *vmxctx)
 	return (handled);
 }
 
-static inline void
+static __inline void
 vmx_run_trace(struct vmx *vmx, int vcpu)
 {
 #ifdef KTR
@@ -766,7 +767,7 @@ vmx_run_trace(struct vmx *vmx, int vcpu)
 #endif
 }
 
-static inline void
+static __inline void
 vmx_exit_trace(struct vmx *vmx, int vcpu, uint64_t rip, uint32_t exit_reason,
 	       int handled, int astpending)
 {
@@ -848,7 +849,7 @@ vm_exit_update_rip(struct vm_exit *vmexit)
  */
 CTASSERT((PROCBASED_CTLS_ONE_SETTING & PROCBASED_INT_WINDOW_EXITING) != 0);
 
-static inline void 
+static __inline void 
 vmx_set_int_window_exiting(struct vmx *vmx, int vcpu)
 {
 	int error;
@@ -860,7 +861,7 @@ vmx_set_int_window_exiting(struct vmx *vmx, int vcpu)
 		panic("vmx_set_int_window_exiting: vmwrite error %d", error);
 }
 
-static inline void 
+static __inline void 
 vmx_clear_int_window_exiting(struct vmx *vmx, int vcpu)
 {
 	int error;
@@ -872,7 +873,7 @@ vmx_clear_int_window_exiting(struct vmx *vmx, int vcpu)
 		panic("vmx_clear_int_window_exiting: vmwrite error %d", error);
 }
 
-static void inline
+static __inline void 
 vmx_set_nmi_window_exiting(struct vmx *vmx, int vcpu)
 {
 	int error;
@@ -884,7 +885,7 @@ vmx_set_nmi_window_exiting(struct vmx *vmx, int vcpu)
 		panic("vmx_set_nmi_window_exiting: vmwrite error %d", error);
 }
 
-static void inline
+static __inline void
 vmx_clear_nmi_window_exiting(struct vmx *vmx, int vcpu)
 {
 	int error;

@@ -34,6 +34,7 @@
 #include <sys/malloc.h>
 #include <sys/systm.h>
 #include <sys/smp.h>
+#include <sys/cdefs.h>
 
 #include <machine/clock.h>
 #include <x86/apicreg.h>
@@ -250,7 +251,7 @@ vlapic_start_timer(struct vlapic *vlapic, uint32_t elapsed)
 	}
 }
 
-static inline uint32_t *
+static __inline uint32_t *
 vlapic_get_lvt(struct vlapic *vlapic, uint32_t offset)
 {
 	struct LAPIC	*lapic = &vlapic->apic;
@@ -378,13 +379,13 @@ vlapic_process_eoi(struct vlapic *vlapic)
 	}
 }
 
-static inline int
+static __inline int
 vlapic_get_lvt_field(uint32_t *lvt, uint32_t mask)
 {
 	return (*lvt & mask);
 }
 
-static inline int
+static __inline int
 vlapic_periodic_timer(struct vlapic *vlapic)
 {
 	uint32_t *lvt;
