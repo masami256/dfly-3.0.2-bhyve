@@ -141,7 +141,7 @@ VMCLEAR(struct vmcs *vmcs)
 	critical_exit();
 }
 
-static void inline
+static inline void 
 VMPTRLD(struct vmcs *vmcs)
 {
 	int err;
