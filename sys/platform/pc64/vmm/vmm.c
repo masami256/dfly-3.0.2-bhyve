@@ -41,6 +41,7 @@
 #include <sys/proc.h>
 #include <sys/sched.h>
 #include <sys/systm.h>
+#include <sys/thread2.h>
 
 #include <vm/vm.h>
 
@@ -534,7 +535,7 @@ vm_run(struct vm *vm, struct vm_run *vmrun)
 
 	vcpu = &vm->vcpu[vcpuid];
 
-	critical_enter();
+	crit_enter();
 
 	tscval = rdtsc();
 
@@ -551,7 +552,7 @@ vm_run(struct vm *vm, struct vm_run *vmrun)
 
 	vmm_stat_incr(vm, vcpuid, VCPU_TOTAL_RUNTIME, rdtsc() - tscval);
 
-	critical_exit();
+	crit_exit();
 
 	return (error);
 }
