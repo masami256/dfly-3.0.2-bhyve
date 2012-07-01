@@ -29,6 +29,8 @@
 #ifndef	_EPT_H_
 #define	_EPT_H_
 
+#include <machine/specialreg.h>
+
 struct vmx;
 
 #define	EPT_PWLEVELS	4		/* page walk levels */
