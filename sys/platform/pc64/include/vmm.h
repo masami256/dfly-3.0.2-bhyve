@@ -29,6 +29,8 @@
 #ifndef _VMM_H_
 #define	_VMM_H_
 
+#include <sys/cpuset.h>
+
 #ifdef _KERNEL
 
 #define	VM_MAX_NAMELEN	32

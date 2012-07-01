@@ -42,6 +42,8 @@
 #ifndef _SYS_TYPES_H_
 #define	_SYS_TYPES_H_
 
+#include <sys/_types.h>
+
 #ifndef _SYS_CDEFS_H_
 #include <sys/cdefs.h>
 #endif
@@ -150,6 +152,8 @@ typedef struct cdev	*cdev_t;
  * Add some definitions to build BHyVe.
  */
 typedef char	vm_memattr_t;
+
+typedef __cpusetid_t    cpusetid_t;
 #endif
 
 /*
