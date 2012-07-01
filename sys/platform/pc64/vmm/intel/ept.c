@@ -165,7 +165,7 @@ ept_create_mapping(uint64_t *ptp, vm_paddr_t gpa, vm_paddr_t hpa, size_t length,
 		 * to it from the current page table.
 		 */
 		if (ptp[ptpindex] == 0) {
-			void *nlp = malloc(PAGE_SIZE, M_VMX, M_WAITOK | M_ZERO);
+			void *nlp = kmalloc(PAGE_SIZE, M_VMX, M_WAITOK | M_ZERO);
 			ptp[ptpindex] = vtophys(nlp);
 			ptp[ptpindex] |= EPT_PG_RD | EPT_PG_WR | EPT_PG_EX;
 		}
@@ -228,7 +228,7 @@ ept_free_pd_entry(pd_entry_t pde)
 		pt = (pt_entry_t *)PHYS_TO_DMAP(pde & EPT_ADDR_MASK);
 		for (i = 0; i < NPTEPG; i++)
 			ept_free_pt_entry(pt[i]);
-		free(pt, M_VMX);	/* free the page table page */
+		kfree(pt, M_VMX);	/* free the page table page */
 	}
 }
 
@@ -245,7 +245,7 @@ ept_free_pdp_entry(pdp_entry_t pdpe)
 		pd = (pd_entry_t *)PHYS_TO_DMAP(pdpe & EPT_ADDR_MASK);
 		for (i = 0; i < NPDEPG; i++)
 			ept_free_pd_entry(pd[i]);
-		free(pd, M_VMX);	/* free the page directory page */
+		kfree(pd, M_VMX);	/* free the page directory page */
 	}
 }
 
@@ -262,7 +262,7 @@ ept_free_pml4_entry(pml4_entry_t pml4e)
 		pdp = (pdp_entry_t *)PHYS_TO_DMAP(pml4e & EPT_ADDR_MASK);
 		for (i = 0; i < NPDPEPG; i++)
 			ept_free_pdp_entry(pdp[i]);
-		free(pdp, M_VMX);	/* free the page directory ptr page */
+		kfree(pdp, M_VMX);	/* free the page directory ptr page */
 	}
 }
 
