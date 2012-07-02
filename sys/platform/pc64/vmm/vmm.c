@@ -50,6 +50,7 @@
 #include <x86/apicreg.h>
 
 #include <machine/vmm.h>
+#include <machine/vmm_dist_conv.h>
 #include "vmm_mem.h"
 #include "vmm_util.h"
 #include <machine/vmm_dev.h>
