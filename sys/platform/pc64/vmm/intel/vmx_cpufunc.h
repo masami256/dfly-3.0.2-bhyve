@@ -30,7 +30,6 @@
 #define	_VMX_CPUFUNC_H_
 
 #include <sys/cdefs.h>
-#include <sys/thread2.h>
 
 struct vmcs;
 
@@ -141,7 +140,7 @@ VMCLEAR(struct vmcs *vmcs)
 	if (err != 0)
 		panic("%s: vmclear(%p) error %d", __func__, vmcs, err);
 
-	crit_exit();
+	critical_exit();
 }
 
 static __inline void
@@ -149,7 +148,7 @@ VMPTRLD(struct vmcs *vmcs)
 {
 	int err;
 
-	crit_enter();
+	critical_enter();
 
 	err = vmptrld(vmcs);
 	if (err != 0)

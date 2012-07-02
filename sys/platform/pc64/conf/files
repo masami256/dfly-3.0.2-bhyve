@@ -163,13 +163,13 @@ libkern/stack_protector.c		standard
 # VMM
 #platform/pc64/vmm/amd/amdv.c		optional	vmm
 platform/pc64/vmm/intel/ept.c		optional	vmm
-platform/pc64/vmm/intel/evmcs.c		optional        vmm
-platform/pc64/vmm/intel/evmx_assym.s	optional        vmm
-platform/pc64/vmm/intel/evmx.c		optional        vmm
-platform/pc64/vmm/intel/evmx_genassym.c	optional        vmm
-platform/pc64/vmm/intel/evmx_msr.c	optional        vmm
-platform/pc64/vmm/intel/evmx_support.S	optional        vmm
-platform/pc64/vmm/intel/evtd.c		optional        vmm
+platform/pc64/vmm/intel/vmcs.c		optional        vmm
+platform/pc64/vmm/intel/vmx_assym.s	optional        vmm
+platform/pc64/vmm/intel/vmx.c		optional        vmm
+platform/pc64/vmm/intel/vmx_genassym.c	optional        vmm
+platform/pc64/vmm/intel/vmx_msr.c	optional        vmm
+platform/pc64/vmm/intel/vmx_support.S	optional        vmm
+platform/pc64/vmm/intel/vtd.c		optional        vmm
 platform/pc64/vmm/io/iommu.c		optional        vmm
 platform/pc64/vmm/io/ppt.c		optional        vmm
 platform/pc64/vmm/io/vdev.c		optional        vmm
