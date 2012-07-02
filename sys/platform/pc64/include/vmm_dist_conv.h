@@ -39,6 +39,22 @@
 #define critical_enter	crit_enter
 #define critical_exit	crit_exit
 
+/*
+ * Wrapper function for smp_rendezvous().
+ */
+static inline void 
+smp_rendezvous(void (* setup_func)(void *),
+               void (* action_func)(void *),
+               void (* teardown_func)(void *),
+               void *arg)
+{
+	/* TODO: need to know to pass mygd is correct or not. */
+	globaldata_t mygd = mycpu;
+	lwkt_send_ipiq3(mygd, (ipifunc3_t) action_func, arg, 0);
+
+}
+
+
 #endif	/* KERNEL */
 
 #endif /* _VMM_DIST_CONV_H_ */
