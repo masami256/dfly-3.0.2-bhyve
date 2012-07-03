@@ -33,11 +33,11 @@
 
 #include <sys/param.h>
 #include <sys/systm.h>
-#include <sys/pcpu.h>
 
 #include <vm/vm.h>
 #include <vm/pmap.h>
 
+#include <machine/thread.h>
 #include <machine/segments.h>
 #include <machine/pmap.h>
 
@@ -406,7 +406,7 @@ vmcs_set_defaults(struct vmcs *vmcs,
 	if ((error = vmwrite(VMCS_HOST_FS_BASE, 0)) != 0)
 		goto done;
 
-	if ((error = vmwrite(VMCS_HOST_IDTR_BASE, r_idt.rd_base)) != 0)
+	if ((error = vmwrite(VMCS_HOST_IDTR_BASE, r_idt_arr[mycpuid].rd_base)) != 0)
 		goto done;
 
 	/* instruction pointer */
@@ -458,13 +458,13 @@ vmcs_read(uint32_t encoding)
 
 #ifdef DDB
 extern int vmxon_enabled[];
-
+#if 0
 DB_SHOW_COMMAND(vmcs, db_show_vmcs)
 {
 	uint64_t cur_vmcs, val;
 	uint32_t exit;
 
-	if (!vmxon_enabled[curcpu]) {
+	if (!vmxon_enabled[mycpuid]) {
 		db_printf("VMX not enabled\n");
 		return;
 	}
@@ -544,4 +544,5 @@ DB_SHOW_COMMAND(vmcs, db_show_vmcs)
 	}
 	db_printf("VM-instruction error: %#lx\n", vmcs_instruction_error());
 }
+#endif
 #endif
