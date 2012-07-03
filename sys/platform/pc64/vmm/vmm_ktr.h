@@ -30,7 +30,7 @@
 #define	_VMM_KTR_H_
 
 #include <sys/ktr.h>
-#include <sys/pcpu.h>
+//#include <sys/pcpu.h>
 
 #define	KTR_VMM	KTR_GEN
 

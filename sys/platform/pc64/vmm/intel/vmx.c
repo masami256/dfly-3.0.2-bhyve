@@ -33,7 +33,6 @@
 #include <sys/systm.h>
 #include <sys/kernel.h>
 #include <sys/malloc.h>
-#include <sys/pcpu.h>
 #include <sys/proc.h>
 #include <sys/cdefs.h>
 
@@ -48,18 +47,19 @@
 #include <machine/segments.h>
 #include <machine/specialreg.h>
 #include <machine/vmparam.h>
+#include <machine/thread.h>
 
 #include <machine/vmm.h>
-#include "vmm_lapic.h"
-#include "vmm_msr.h"
-#include "vmm_ktr.h"
-#include "vmm_stat.h"
+#include "../vmm_lapic.h"
+#include "../vmm_msr.h"
+#include "../vmm_ktr.h"
+#include "../vmm_stat.h"
 
 #include "vmx_msr.h"
 #include "ept.h"
 #include "vmx_cpufunc.h"
 #include "vmx.h"
-#include "x86.h"
+#include "../x86.h"
 #include "vmx_controls.h"
 
 #define	CR4_VMXE	(1UL << 13)
@@ -387,7 +387,7 @@ vmx_disable(void *arg __unused)
 	struct invvpid_desc invvpid_desc = { 0 };
 	struct invept_desc invept_desc = { 0 };
 
-	if (vmxon_enabled[curcpu]) {
+	if (vmxon_enabled[mycpuid]) {
 		/*
 		 * See sections 25.3.3.3 and 25.3.3.4 in Intel Vol 3b.
 		 *
@@ -418,10 +418,10 @@ vmx_enable(void *arg __unused)
 
 	load_cr4(rcr4() | CR4_VMXE);
 
-	*(uint32_t *)vmxon_region[curcpu] = vmx_revision();
-	error = vmxon(vmxon_region[curcpu]);
+	*(uint32_t *)vmxon_region[mycpuid] = vmx_revision();
+	error = vmxon(vmxon_region[mycpuid]);
 	if (error == 0)
-		vmxon_enabled[curcpu] = 1;
+		vmxon_enabled[mycpuid] = 1;
 }
 
 static int
@@ -433,7 +433,7 @@ vmx_init(void)
 
 	/* CPUID.1:ECX[bit 5] must be 1 for processor to support VMX */
 	if (!(cpu_feature2 & CPUID2_VMX)) {
-		printf("vmx_init: processor does not support VMX operation\n");
+		kprintf("vmx_init: processor does not support VMX operation\n");
 		return (ENXIO);
 	}
 
@@ -443,7 +443,7 @@ vmx_init(void)
 			       PROCBASED_CTLS_ONE_SETTING,
 			       PROCBASED_CTLS_ZERO_SETTING, &procbased_ctls);
 	if (error) {
-		printf("vmx_init: processor does not support desired primary "
+		kprintf("vmx_init: processor does not support desired primary "
 		       "processor-based controls\n");
 		return (error);
 	}
@@ -457,7 +457,7 @@ vmx_init(void)
 			       PROCBASED_CTLS2_ONE_SETTING,
 			       PROCBASED_CTLS2_ZERO_SETTING, &procbased_ctls2);
 	if (error) {
-		printf("vmx_init: processor does not support desired secondary "
+		kprintf("vmx_init: processor does not support desired secondary "
 		       "processor-based controls\n");
 		return (error);
 	}
@@ -474,7 +474,7 @@ vmx_init(void)
 			       PINBASED_CTLS_ONE_SETTING,
 			       PINBASED_CTLS_ZERO_SETTING, &pinbased_ctls);
 	if (error) {
-		printf("vmx_init: processor does not support desired "
+		kprintf("vmx_init: processor does not support desired "
 		       "pin-based controls\n");
 		return (error);
 	}
@@ -492,12 +492,12 @@ vmx_init(void)
 				       VM_EXIT_CTLS_ZERO_SETTING,
 				       &exit_ctls);
 		if (error) {
-			printf("vmx_init: processor does not support desired "
+			kprintf("vmx_init: processor does not support desired "
 			       "exit controls\n");
 			return (error);
 		} else {
 			if (bootverbose)
-				printf("vmm: PAT MSR access not supported\n");
+				kprintf("vmm: PAT MSR access not supported\n");
 			guest_msr_valid(MSR_PAT);
 			vmx_no_patmsr = 1;
 		}
@@ -519,7 +519,7 @@ vmx_init(void)
 	}
 
 	if (error) {
-		printf("vmx_init: processor does not support desired "
+		kprintf("vmx_init: processor does not support desired "
 		       "entry controls\n");
 		       return (error);
 	}
@@ -551,7 +551,7 @@ vmx_init(void)
 	/* Initialize EPT */
 	error = ept_init();
 	if (error) {
-		printf("vmx_init: ept initialization failed (%d)\n", error);
+		kprintf("vmx_init: ept initialization failed (%d)\n", error);
 		return (error);
 	}
 
@@ -643,9 +643,9 @@ vmx_vminit(struct vm *vm)
 	int i, error, guest_msr_count;
 	struct vmx *vmx;
 
-	vmx = malloc(sizeof(struct vmx), M_VMX, M_WAITOK | M_ZERO);
+	vmx = kmalloc(sizeof(struct vmx), M_VMX, M_WAITOK | M_ZERO);
 	if ((uintptr_t)vmx & PAGE_MASK) {
-		panic("malloc of struct vmx not aligned on %d byte boundary",
+		panic("kmalloc of struct vmx not aligned on %d byte boundary",
 		      PAGE_SIZE);
 	}
 	vmx->vm = vm;
@@ -751,7 +751,7 @@ vmx_handle_cpuid(int vcpu, struct vmxctx *vmxctx)
 	    (uint32_t*)(&vmxctx->guest_rbx), (uint32_t*)(&vmxctx->guest_rcx),
 	    (uint32_t*)(&vmxctx->guest_rdx), vcpu);
 #if 0
-	printf("%s: func %x rax %lx rbx %lx rcx %lx rdx %lx handled %d\n",
+	kprintf("%s: func %x rax %lx rbx %lx rcx %lx rdx %lx handled %d\n",
 		__func__, func, vmxctx->guest_rax, vmxctx->guest_rbx,
 		vmxctx->guest_rcx, vmxctx->guest_rdx, handled);
 #endif
@@ -790,9 +790,9 @@ vmx_set_pcpu_defaults(struct vmx *vmx, int vcpu)
 
 	vmxstate = &vmx->state[vcpu];
 	lastcpu = vmxstate->lastcpu;
-	vmxstate->lastcpu = curcpu;
+	vmxstate->lastcpu = mycpuid;
 
-	if (lastcpu == curcpu) {
+	if (lastcpu == mycpuid) {
 		error = 0;
 		goto done;
 	}
@@ -803,11 +803,11 @@ vmx_set_pcpu_defaults(struct vmx *vmx, int vcpu)
 	if (error != 0)
 		goto done;
 
-	error = vmwrite(VMCS_HOST_GDTR_BASE, (u_long)&gdt[NGDT * curcpu]);
+	error = vmwrite(VMCS_HOST_GDTR_BASE, (u_long)&gdt[NGDT * mycpuid]);
 	if (error != 0)
 		goto done;
 
-	error = vmwrite(VMCS_HOST_GS_BASE, (u_long)&__pcpu[curcpu]);
+	error = vmwrite(VMCS_HOST_GS_BASE, (u_long)&__pcpu[mycpuid]);
 	if (error != 0)
 		goto done;
 
@@ -817,7 +817,7 @@ vmx_set_pcpu_defaults(struct vmx *vmx, int vcpu)
 	 * We do this because this vcpu was executing on a different host
 	 * cpu when it last ran. We do not track whether it invalidated
 	 * mappings associated with its 'vpid' during that run. So we must
-	 * assume that the mappings associated with 'vpid' on 'curcpu' are
+	 * assume that the mappings associated with 'vpid' on 'mycpuid' are
 	 * stale and invalidate them.
 	 *
 	 * Note that we incur this penalty only when the scheduler chooses to
@@ -1285,7 +1285,7 @@ vmx_run(void *arg, int vcpu, register_t rip, struct vm_exit *vmexit)
 			vie = vmcs_instruction_error();
 			if (vmxctx->launch_error == VM_FAIL_INVALID ||
 			    vie != VMRESUME_WITH_NON_LAUNCHED_VMCS) {
-				printf("vmresume error %d vmcs inst error %d\n",
+				kprintf("vmresume error %d vmcs inst error %d\n",
 					vmxctx->launch_error, vie);
 				goto err_exit;
 			}
@@ -1295,7 +1295,7 @@ vmx_run(void *arg, int vcpu, register_t rip, struct vm_exit *vmexit)
 		case VMX_RETURN_VMLAUNCH:
 			vie = vmcs_instruction_error();
 #if 1
-			printf("vmlaunch error %d vmcs inst error %d\n",
+			kprintf("vmlaunch error %d vmcs inst error %d\n",
 				vmxctx->launch_error, vie);
 #endif
 			goto err_exit;
@@ -1372,7 +1372,7 @@ vmx_vmcleanup(void *arg)
 		panic("vmx_vmcleanup: vmclear error %d on vcpu 0", error);
 
 	ept_vmcleanup(vmx);
-	free(vmx, M_VMX);
+	kfree(vmx, M_VMX);
 
 	return;
 }
