@@ -48,6 +48,7 @@
 #include <machine/specialreg.h>
 #include <machine/vmparam.h>
 #include <machine/thread.h>
+#include <machine/globaldata.h>
 
 #include <machine/vmm.h>
 #include "../vmm_lapic.h"
@@ -787,6 +788,7 @@ vmx_set_pcpu_defaults(struct vmx *vmx, int vcpu)
 	int error, lastcpu;
 	struct vmxstate *vmxstate;
 	struct invvpid_desc invvpid_desc = { 0 };
+	struct mdglobaldata *gd = mdcpu;
 
 	vmxstate = &vmx->state[vcpu];
 	lastcpu = vmxstate->lastcpu;
@@ -799,7 +801,7 @@ vmx_set_pcpu_defaults(struct vmx *vmx, int vcpu)
 
 	vmm_stat_incr(vmx->vm, vcpu, VCPU_MIGRATIONS, 1);
 
-	error = vmwrite(VMCS_HOST_TR_BASE, (u_long)PCPU_GET(tssp));
+	error = vmwrite(VMCS_HOST_TR_BASE, (u_long) gd->gd_common_tss);
 	if (error != 0)
 		goto done;
 
