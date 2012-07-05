@@ -117,8 +117,6 @@
 
 MALLOC_DEFINE(M_VMX, "vmx", "vmx");
 
-extern  struct pcpu __pcpu[];
-
 int vmxon_enabled[MAXCPU];
 static char vmxon_region[MAXCPU][PAGE_SIZE] __aligned(PAGE_SIZE);
 
@@ -801,7 +799,7 @@ vmx_set_pcpu_defaults(struct vmx *vmx, int vcpu)
 
 	vmm_stat_incr(vmx->vm, vcpu, VCPU_MIGRATIONS, 1);
 
-	error = vmwrite(VMCS_HOST_TR_BASE, (u_long) gd->gd_common_tss);
+	error = vmwrite(VMCS_HOST_TR_BASE, (u_long)&gd->gd_common_tss);
 	if (error != 0)
 		goto done;
 
@@ -809,7 +807,8 @@ vmx_set_pcpu_defaults(struct vmx *vmx, int vcpu)
 	if (error != 0)
 		goto done;
 
-	error = vmwrite(VMCS_HOST_GS_BASE, (u_long)&__pcpu[mycpuid]);
+	/* TODO: It needs to check gd is ok or note. */
+	error = vmwrite(VMCS_HOST_GS_BASE, (u_long)gd);
 	if (error != 0)
 		goto done;
 
@@ -1311,10 +1310,13 @@ vmx_run(void *arg, int vcpu, register_t rip, struct vm_exit *vmexit)
 		 * atomically while interrupts are disabled. But it is
 		 * not clear that they apply in our case.
 		 */
-		astpending = curthread->td_flags & TDF_ASTPENDING;
+		/*
+		 * TODO: TDF_PREEMPT_LOCK is OK?
+		 */
+		astpending = curthread->td_flags & TDF_PREEMPT_LOCK;
 
 		/* enable interrupts */
-		enable_intr();
+		cpu_enable_intr();
 
 		/* collect some basic information for VM exit processing */
 		vmexit->rip = rip = vmcs_guest_rip();
