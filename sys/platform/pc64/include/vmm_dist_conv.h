@@ -33,13 +33,6 @@
 #include <sys/thread2.h>
 
 /*
- * Replace critical_enter and critical_exit that are FreeBSD's function name to
- * crit_enter and crit_exit.
- */
-#define critical_enter	crit_enter
-#define critical_exit	crit_exit
-
-/*
  * Wrapper function for smp_rendezvous().
  */
 static inline void 

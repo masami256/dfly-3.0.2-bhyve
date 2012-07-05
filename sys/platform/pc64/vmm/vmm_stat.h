@@ -49,7 +49,7 @@ void	vmm_stat_init(void *arg);
 	struct vmm_stat_type type[1] = {				\
 		{ desc, -1 }						\
 	};								\
-	SYSINIT(type##_stat, SI_SUB_KLD, SI_ORDER_ANY, vmm_stat_init, type)
+	SYSINIT(type##_stat, SI_BOOT2_KLD, SI_ORDER_ANY, vmm_stat_init, type)
 
 void	*vmm_stat_alloc(void);
 void 	vmm_stat_free(void *vp);
