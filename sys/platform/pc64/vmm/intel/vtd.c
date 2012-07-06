@@ -37,13 +37,13 @@
 #include <vm/vm.h>
 #include <vm/pmap.h>
 
-#include <dev/pci/pcireg.h>
+#include <bus/pci/pcireg.h>
+#include <bus/pci/x86_64/pci_cfgreg.h>
 
 #include <machine/pmap.h>
 #include <machine/vmparam.h>
-#include <machine/pci_cfgreg.h>
 
-#include "io/iommu.h"
+#include "../io/iommu.h"
 
 /*
  * Documented in the "Intel Virtualization Technology for Directed I/O",
@@ -158,7 +158,7 @@ tylersburg_vtd_ident(void)
 		vtdmaps[units++] = (struct vtdmap *)
 					PHYS_TO_DMAP(vtbar & 0xffffe000);
 	} else if (bootverbose)
-		printf("VT-d unit in legacy IOH is disabled!\n");
+		kprintf("VT-d unit in legacy IOH is disabled!\n");
 
 	if (nlbus != -1) {
 		vtbar = pci_cfgregread(nlbus, slot, func, 0x180, 4);
@@ -166,7 +166,7 @@ tylersburg_vtd_ident(void)
 			vtdmaps[units++] = (struct vtdmap *)
 					   PHYS_TO_DMAP(vtbar & 0xffffe000);
 		} else if (bootverbose)
-			printf("VT-d unit in non-legacy IOH is disabled!\n");
+			kprintf("VT-d unit in non-legacy IOH is disabled!\n");
 	}
 done:
 	return (units);
@@ -224,6 +224,13 @@ domain_id(void)
 		panic("domain ids exhausted");
 
 	return (id);
+}
+
+static void
+pmap_invalidate_cache(void)
+{
+	/* TODO: It may be need to do some more steps. */
+	wbinvd();
 }
 
 static void
@@ -295,6 +302,7 @@ vtd_init(void)
 	struct vtdmap *vtdmap;
 	vm_paddr_t ctx_paddr;
 	
+	units = 0;
 	for (i = 0; drhd_ident_funcs[i] != NULL; i++) {
 		units = (*drhd_ident_funcs[i])();
 		if (units > 0)
@@ -502,7 +510,7 @@ vtd_create_mapping(void *arg, vm_paddr_t gpa, vm_paddr_t hpa, uint64_t len)
 		 * to it from the current page table.
 		 */
 		if (ptp[ptpindex] == 0) {
-			void *nlp = malloc(PAGE_SIZE, M_VTD, M_WAITOK | M_ZERO);
+			void *nlp = kmalloc(PAGE_SIZE, M_VTD, M_WAITOK | M_ZERO);
 			ptp[ptpindex] = vtophys(nlp)| VTD_PTE_RD | VTD_PTE_WR;
 		}
 
@@ -576,13 +584,13 @@ vtd_create_domain(vm_paddr_t maxaddr)
 		      VTD_CAP_SAGAW(vtdmap->cap), agaw);
 	}
 
-	dom = malloc(sizeof(struct domain), M_VTD, M_ZERO | M_WAITOK);
+	dom = kmalloc(sizeof(struct domain), M_VTD, M_ZERO | M_WAITOK);
 	dom->pt_levels = pt_levels;
 	dom->addrwidth = addrwidth;
 	dom->spsmask = VTD_CAP_SPS(vtdmap->cap);
 	dom->id = domain_id();
 	dom->maxaddr = maxaddr;
-	dom->ptp = malloc(PAGE_SIZE, M_VTD, M_ZERO | M_WAITOK);
+	dom->ptp = kmalloc(PAGE_SIZE, M_VTD, M_ZERO | M_WAITOK);
 	if ((uintptr_t)dom->ptp & PAGE_MASK)
 		panic("vtd_create_domain: ptp (%p) not page aligned", dom->ptp);
 
@@ -609,7 +617,7 @@ vtd_free_ptp(uint64_t *ptp, int level)
 	}
 
 	bzero(ptp, PAGE_SIZE);
-	free(ptp, M_VTD);
+	kfree(ptp, M_VTD);
 }
 
 static void
@@ -621,7 +629,7 @@ vtd_destroy_domain(void *arg)
 
 	SLIST_REMOVE(&domhead, dom, domain, next);
 	vtd_free_ptp(dom->ptp, dom->pt_levels);
-	free(dom, M_VTD);
+	kfree(dom, M_VTD);
 }
 
 struct iommu_ops iommu_ops_intel = {
