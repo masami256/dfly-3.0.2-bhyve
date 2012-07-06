@@ -231,6 +231,7 @@ pmap_invalidate_cache(void)
 {
 	/* TODO: It may be need to do some more steps. */
 	wbinvd();
+	smp_invltlb();
 }
 
 static void
