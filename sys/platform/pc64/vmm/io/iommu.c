@@ -35,12 +35,12 @@
 #include <sys/bus.h>
 #include <sys/cdefs.h>
 
-#include <dev/pci/pcivar.h>
-#include <dev/pci/pcireg.h>
+#include <bus/pci/pcivar.h>
+#include <bus/pci/pcireg.h>
 
 #include <machine/md_var.h>
 
-#include "vmm_util.h"
+#include "../vmm_util.h"
 #include "iommu.h"
 
 static boolean_t iommu_avail;
