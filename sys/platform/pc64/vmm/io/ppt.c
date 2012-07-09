@@ -37,18 +37,18 @@
 #include <sys/bus.h>
 #include <sys/pciio.h>
 #include <sys/rman.h>
-#include <sys/smp.h>
+#include <sys/resource.h>
 
-#include <dev/pci/pcivar.h>
-#include <dev/pci/pcireg.h>
+#include <bus/pci/pcivar.h>
+#include <bus/pci/pcireg.h>
 
-#include <machine/resource.h>
+#include <machine/smp.h>
 
 #include <machine/vmm.h>
 #include <machine/vmm_dev.h>
 
-#include "vmm_lapic.h"
-#include "vmm_ktr.h"
+#include "../vmm_lapic.h"
+#include "../vmm_ktr.h"
 
 #include "iommu.h"
 #include "ppt.h"
@@ -123,7 +123,7 @@ ppt_attach(device_t dev)
 	int n;
 
 	if (num_pptdevs >= MAX_PPTDEVS) {
-		printf("ppt_attach: maximum number of pci passthrough devices "
+		kprintf("ppt_attach: maximum number of pci passthrough devices "
 		       "exceeded\n");
 		return (ENXIO);
 	}
@@ -263,13 +263,13 @@ ppt_teardown_msix(struct pptdev *ppt)
 		ppt->msix.msix_table_rid = 0;
 	}
 
-	free(ppt->msix.res, M_PPTMSIX);
-	free(ppt->msix.cookie, M_PPTMSIX);
-	free(ppt->msix.arg, M_PPTMSIX);
+	kfree(ppt->msix.res, M_PPTMSIX);
+	kfree(ppt->msix.cookie, M_PPTMSIX);
+	kfree(ppt->msix.arg, M_PPTMSIX);
 
 	error = pci_release_msi(ppt->dev);
 	if (error) 
-		printf("ppt_teardown_msix: Failed to release MSI-X resources (error %i)\n", error);
+		kprintf("ppt_teardown_msix: Failed to release MSI-X resources (error %i)\n", error);
 
 	ppt->msix.num_msgs = 0;
 }
@@ -571,9 +571,9 @@ ppt_setup_msix(struct vm *vm, int vcpu, int bus, int slot, int func,
 		cookie_size = numvec * sizeof(ppt->msix.cookie[0]);
 		arg_size = numvec * sizeof(ppt->msix.arg[0]);
 
-		ppt->msix.res = malloc(res_size, M_PPTMSIX, M_WAITOK);
-		ppt->msix.cookie = malloc(cookie_size, M_PPTMSIX, M_WAITOK);
-		ppt->msix.arg = malloc(arg_size, M_PPTMSIX, M_WAITOK);
+		ppt->msix.res = kmalloc(res_size, M_PPTMSIX, M_WAITOK);
+		ppt->msix.cookie = kmalloc(cookie_size, M_PPTMSIX, M_WAITOK);
+		ppt->msix.arg = kmalloc(arg_size, M_PPTMSIX, M_WAITOK);
 		if (ppt->msix.res == NULL || ppt->msix.cookie == NULL || 
 		    ppt->msix.arg == NULL) {
 			ppt_teardown_msix(ppt);
