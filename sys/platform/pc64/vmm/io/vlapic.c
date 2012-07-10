@@ -33,16 +33,16 @@
 #include <sys/kernel.h>
 #include <sys/malloc.h>
 #include <sys/systm.h>
-#include <sys/smp.h>
 #include <sys/cdefs.h>
 
+#include <machine/smp.h>
 #include <machine/clock.h>
-#include <x86/apicreg.h>
+#include <machine_base/apic/apicreg.h>
 
 #include <machine/vmm.h>
 
-#include "vmm_lapic.h"
-#include "vmm_ktr.h"
+#include <machine_base/vmm/vmm_lapic.h>
+#include <machine_base/vmm/vmm_ktr.h>
 #include "vdev.h"
 #include "vlapic.h"
 
@@ -115,7 +115,7 @@ vlapic_mask_lvts(uint32_t *lvts, int num_lvt)
 {
 	int i;
 	for (i = 0; i < num_lvt; i++) {
-		*lvts |= APIC_LVT_M;
+		*lvts |= APIC_LVT_MASKED;
 		lvts += 4;
 	}
 }
@@ -124,7 +124,7 @@ vlapic_mask_lvts(uint32_t *lvts, int num_lvt)
 static inline void
 vlapic_dump_lvt(uint32_t offset, uint32_t *lvt)
 {
-	printf("Offset %x: lvt %08x (V:%02x DS:%x M:%x)\n", offset,
+	kprintf("Offset %x: lvt %08x (V:%02x DS:%x M:%x)\n", offset,
 	    *lvt, *lvt & APIC_LVTT_VECTOR, *lvt & APIC_LVTT_DS,
 	    *lvt & APIC_LVTT_M);
 }
@@ -203,7 +203,7 @@ vlapic_set_intr_ready(struct vlapic *vlapic, int vector)
 	VLAPIC_CTR_IRR(vlapic, "vlapic_set_intr_ready");
 }
 
-#define VLAPIC_BUS_FREQ	tsc_freq
+#define VLAPIC_BUS_FREQ	tsc_frequency
 #define VLAPIC_DCR(x)	((x->dcr_timer & 0x8) >> 1)|(x->dcr_timer & 0x3)
 
 static int
@@ -273,10 +273,10 @@ dump_isrvec_stk(struct vlapic *vlapic)
 
 	isrptr = &vlapic->apic.isr0;
 	for (i = 0; i < 8; i++)
-		printf("ISR%d 0x%08x\n", i, isrptr[i * 4]);
+		kprintf("ISR%d 0x%08x\n", i, isrptr[i * 4]);
 
 	for (i = 0; i <= vlapic->isrvec_stk_top; i++)
-		printf("isrvec_stk[%d] = %d\n", i, vlapic->isrvec_stk[i]);
+		kprintf("isrvec_stk[%d] = %d\n", i, vlapic->isrvec_stk[i]);
 }
 #endif
 
@@ -392,7 +392,7 @@ vlapic_periodic_timer(struct vlapic *vlapic)
 	
 	lvt = vlapic_get_lvt(vlapic, APIC_OFFSET_TIMER_LVT);
 
-	return (vlapic_get_lvt_field(lvt, APIC_LVTT_TM_PERIODIC));
+	return (vlapic_get_lvt_field(lvt, APIC_LVTT_PERIODIC));
 }
 
 static void
@@ -403,7 +403,7 @@ vlapic_fire_timer(struct vlapic *vlapic)
 	
 	lvt = vlapic_get_lvt(vlapic, APIC_OFFSET_TIMER_LVT);
 
-	if (!vlapic_get_lvt_field(lvt, APIC_LVTT_M)) {
+	if (!vlapic_get_lvt_field(lvt, APIC_LVTT_MASKED)) {
 		vector = vlapic_get_lvt_field(lvt,APIC_LVTT_VECTOR);
 		vlapic_set_intr_ready(vlapic, vector);
 	}
@@ -654,7 +654,7 @@ vlapic_op_mem_write(void* dev, uint64_t gpa, opsize_t size, uint64_t data)
 		case APIC_OFFSET_TIMER_LVT ... APIC_OFFSET_ERROR_LVT:
 			reg = vlapic_get_lvt(vlapic, offset);	
 			if (!(lapic->svr & APIC_SVR_ENABLE)) {
-				data |= APIC_LVT_M;
+				data |= APIC_LVT_MASKED;
 			}
 			*reg = data;
 			// vlapic_dump_lvt(offset, reg);
@@ -758,7 +758,7 @@ vlapic_init(struct vm *vm, int vcpuid)
 {
 	struct vlapic 		*vlapic;
 
-	vlapic = malloc(sizeof(struct vlapic), M_VLAPIC, M_WAITOK | M_ZERO);
+	vlapic = kmalloc(sizeof(struct vlapic), M_VLAPIC, M_WAITOK | M_ZERO);
 	vlapic->vm = vm;
 	vlapic->vcpuid = vcpuid;
 	vlapic->ops = &vlapic_dev_ops;
@@ -781,5 +781,5 @@ vlapic_cleanup(struct vlapic *vlapic)
 {
 	vlapic_op_halt(vlapic);
 	vdev_unregister(vlapic);
-	free(vlapic, M_VLAPIC);
+	kfree(vlapic, M_VLAPIC);
 }
