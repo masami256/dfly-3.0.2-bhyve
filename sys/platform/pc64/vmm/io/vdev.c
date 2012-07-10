@@ -27,7 +27,7 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
+/*__FBSDID("$FreeBSD$");*/
 
 #include <sys/param.h>
 #include <sys/kernel.h>
@@ -84,7 +84,7 @@ vdev_system_event(int event)
 				break;
 		}
 		if (rc) {
-			printf("vdev %s init failed rc=%d\n",
+			kprintf("vdev %s init failed rc=%d\n",
 			    vd->ops->name, rc);
 			return rc;
 		}
@@ -128,7 +128,7 @@ vdev_vm_cleanup(void)
 	while (!SLIST_EMPTY(&vdev_head)) {
 		vd = SLIST_FIRST(&vdev_head);
 		SLIST_REMOVE_HEAD(&vdev_head, entry);
-		free(vd, M_VDEV);
+		kfree(vd, M_VDEV);
 		vdev_count--;
 	}
 }
@@ -137,7 +137,7 @@ int
 vdev_register(struct vdev_ops *ops, void *dev)
 {
 	struct vdev *vd;
-	vd = malloc(sizeof(*vd), M_VDEV, M_WAITOK | M_ZERO); 
+	vd = kmalloc(sizeof(*vd), M_VDEV, M_WAITOK | M_ZERO); 
 	vd->ops = ops;
 	vd->dev = dev;
 	
@@ -162,7 +162,7 @@ vdev_unregister(void *dev)
 
 	if (found) {
 		SLIST_REMOVE(&vdev_head, found, vdev, entry);
-		free(found, M_VDEV);
+		kfree(found, M_VDEV);
 	}
 }
 
@@ -204,7 +204,7 @@ vdev_register_region(struct vdev_ops *ops, void *dev, struct io_region *io)
 		return -EEXIST;
 	}
 
-	region = malloc(sizeof(*region), M_VDEV, M_WAITOK | M_ZERO);
+	region = kmalloc(sizeof(*region), M_VDEV, M_WAITOK | M_ZERO);
 	region->io = io;
 	region->ops = ops;
 	region->dev = dev;
@@ -225,7 +225,7 @@ vdev_unregister_region(void *dev, struct io_region *io)
 	
 	if (region) {
 		SLIST_REMOVE(&region_head, region, vdev_region, entry);
-		free(region, M_VDEV);
+		kfree(region, M_VDEV);
 		region_count--;
 	}
 }
