@@ -35,32 +35,29 @@
 #include <sys/module.h>
 #include <sys/sysctl.h>
 #include <sys/malloc.h>
-#include <sys/pcpu.h>
 #include <sys/lock.h>
 #include <sys/mutex.h>
 #include <sys/proc.h>
 #include <sys/sched.h>
 #include <sys/systm.h>
-
 #include <vm/vm.h>
 
 #include <machine/smp.h>
-#include <machine/vm.h>
 #include <machine/pcb.h>
-#include <x86/apicreg.h>
+#include <machine_base/apic/apicreg.h>
 
 #include <machine/vmm.h>
 #include <machine/vmm_dist_conv.h>
 #include "vmm_mem.h"
 #include "vmm_util.h"
 #include <machine/vmm_dev.h>
-#include "vlapic.h"
-#include "vmm_msr.h"
-#include "vmm_ipi.h"
-#include "vmm_stat.h"
+#include "machine_base/vmm//io/vlapic.h"
+#include "machine_base/vmm/vmm_msr.h"
+#include "machine_base/vmm/vmm_ipi.h"
+#include "machine_base/vmm/vmm_stat.h"
 
-#include "io/ppt.h"
-#include "io/iommu.h"
+#include "machine_base/vmm/io/ppt.h"
+#include "machine_base/vmm/io/iommu.h"
 
 struct vlapic;
 
@@ -71,7 +68,7 @@ struct vcpu {
 	uint64_t	guest_msrs[VMM_MSR_NUM];
 	struct vlapic	*vlapic;
 	int		 vcpuid;
-	struct savefpu	*guestfpu;	/* guest fpu state */
+	union savefpu	*guestfpu;	/* guest fpu state */
 	void		*stats;
 };
 #define	VCPU_F_PINNED	0x0001
@@ -240,7 +237,7 @@ vm_create(const char *name)
 	if (name == NULL || strlen(name) >= VM_MAX_NAMELEN)
 		return (NULL);
 
-	vm = malloc(sizeof(struct vm), M_VM, M_WAITOK | M_ZERO);
+	vm = kmalloc(sizeof(struct vm), M_VM, M_WAITOK | M_ZERO);
 	strcpy(vm->name, name);
 	vm->cookie = VMINIT(vm);
 
@@ -273,7 +270,7 @@ vm_destroy(struct vm *vm)
 
 	VMCLEANUP(vm->cookie);
 
-	free(vm, M_VM);
+	kfree(vm, M_VM);
 }
 
 const char *
@@ -535,11 +532,11 @@ vm_run(struct vm *vm, struct vm_run *vmrun)
 
 	vcpu = &vm->vcpu[vcpuid];
 
-	critical_enter();
+	crit_enter();
 
 	tscval = rdtsc();
 
-	pcb = PCPU_GET(curpcb);
+	pcb = curthread->td_pcb;
 	set_pcb_flags(pcb, PCB_FULL_IRET);
 
 	vcpu->hostcpu = curcpu;
@@ -552,7 +549,7 @@ vm_run(struct vm *vm, struct vm_run *vmrun)
 
 	vmm_stat_incr(vm, vcpuid, VCPU_TOTAL_RUNTIME, rdtsc() - tscval);
 
-	critical_exit();
+	crit_exit();
 
 	return (error);
 }
@@ -632,12 +629,12 @@ vmm_is_pptdev(int bus, int slot, int func)
 	 * setenv pptdevs "1/2/3 4/5/6 7/8/9 10/11/12"
 	 */
 	found = 0;
-	cp = val = getenv("pptdevs");
+	cp = val = kgetenv("pptdevs");
 	while (cp != NULL && *cp != '\0') {
 		if ((cp2 = strchr(cp, ' ')) != NULL)
 			*cp2 = '\0';
 
-		n = sscanf(cp, "%d/%d/%d", &b, &s, &f);
+		n = ksscanf(cp, "%d/%d/%d", &b, &s, &f);
 		if (n == 3 && bus == b && slot == s && func == f) {
 			found = 1;
 			break;
@@ -648,7 +645,7 @@ vmm_is_pptdev(int bus, int slot, int func)
 
 		cp = cp2;
 	}
-	freeenv(val);
+	kfreeenv(val);
 	return (found);
 }
 
