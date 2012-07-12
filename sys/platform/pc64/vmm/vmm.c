@@ -48,6 +48,7 @@
 
 #include <machine/vmm.h>
 #include <machine/vmm_dist_conv.h>
+#include <machine_base/vmm/vmm_fpu.h>
 #include "vmm_mem.h"
 #include "vmm_util.h"
 #include <machine/vmm_dev.h>
