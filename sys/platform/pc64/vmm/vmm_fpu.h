@@ -39,4 +39,8 @@ union savefpu *fpu_save_area_alloc(void);
 void fpu_save_area_free(union savefpu *fsa);
 void fpu_save_area_reset(union savefpu *fsa);
 
+void fpuexit(struct thread *td);
+void fpurestore(void *addr);
+void fpusave(void *addr);
+
 #endif /* _VMM_FPU_H_ */

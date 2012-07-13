@@ -25,6 +25,11 @@
  *
  */
 
+/*
+ *  most functions came from FreeBSD
+ *  http://fxr.watson.org/fxr/source/amd64/amd64/fpu.c
+ */
+
 #include <sys/cdefs.h>
 
 #include <sys/param.h>
@@ -34,7 +39,16 @@
 #include <sys/objcache.h>
 
 #include <machine/npx.h>
-#include <machine/vmm_fpu.h>
+#include <machine_base/vmm/vmm_fpu.h>
+
+
+#define DO_NOT_USE_FPU_FOR_TMP 1
+
+#define start_emulating()       __asm __volatile( \
+		                                    "smsw %%ax; orb %0,%%al; lmsw %%ax" \
+		                                    : : "n" (CR0_TS) : "ax")
+#define stop_emulating()        __asm __volatile("clts")
+
 
 typedef struct objcache *objcache_t;
 #define uma_zone_t      objcache_t
@@ -54,6 +68,8 @@ MALLOC_DEFINE(M_FPU_SAVE_AREA, "fpu_save_area", "fpu_sava_area manager");
 
 #define cpu_max_ext_state_size sizeof(union savefpu)
 
+int use_xsave;			/* non-static for cpu_switch.S */
+uint64_t xsave_mask;		/* the same */
 static union savefpu *fpu_initialstate;
 
 static uma_zone_t fpu_save_area_zone;
@@ -82,4 +98,91 @@ fpu_save_area_reset(union savefpu *fsa)
 {
 
 	bcopy(fpu_initialstate, fsa, cpu_max_ext_state_size);
+}
+
+#ifndef DO_NOT_USE_FPU_FOR_TMP
+/*
+ * Free coprocessor (if we have it).
+ */
+void
+fpuexit(struct thread *td)
+{
+         crit_enter();
+         if (curthread == CPU_GET(fpcurthread)) {
+                 stop_emulating();
+                 fxsave(PCPU_GET(curpcb)->pcb_save);
+                 start_emulating();
+                 PCPU_SET(fpcurthread, 0);
+         }
+         crit_exit();
+}
+#else
+
+#include <assert.h>
+
+void
+fpuexit(struct thread *td) 
+{
+	assert(0 == 1);
+}
+
+#endif
+
+
+#define	fxrstor(addr)		__asm __volatile("fxrstor %0" : : "m" (*(addr)))
+#define	fxsave(addr)		__asm __volatile("fxsave %0" : "=m" (*(addr)))
+
+static __inline void
+xrstor(char *addr, uint64_t mask)
+{
+	uint32_t low, hi;
+
+	low = mask;
+	hi = mask >> 32;
+	/* xrstor (%rdi) */
+	__asm __volatile(".byte	0x0f,0xae,0x2f" : :
+			    "a" (low), "d" (hi), "D" (addr));
+}
+
+static __inline void
+xsave(char *addr, uint64_t mask)
+{
+	uint32_t low, hi;
+
+	low = mask;
+	hi = mask >> 32;
+	/* xsave (%rdi) */
+	__asm __volatile(".byte	0x0f,0xae,0x27" : :
+			    "a" (low), "d" (hi), "D" (addr) : "memory");
+}
+
+static __inline void
+xsetbv(uint32_t reg, uint64_t val)
+{
+	uint32_t low, hi;
+
+	low = val;
+	hi = val >> 32;
+	__asm __volatile(".byte 0x0f,0x01,0xd1" : :
+			    "c" (reg), "a" (low), "d" (hi));
+}
+
+void
+fpurestore(void *addr)
+{
+
+	if (use_xsave)
+		xrstor((char *)addr, xsave_mask);
+	else
+		fxrstor((char *)addr);
+}
+
+void
+fpusave(void *addr)
+{
+
+	if (use_xsave)
+		xsave((char *)addr, xsave_mask);
+	else
+		fxsave((char *)addr);
 }
