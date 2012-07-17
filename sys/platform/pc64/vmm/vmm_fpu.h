@@ -35,6 +35,13 @@
 #include <sys/module.h>
 #include <sys/objcache.h>
 
+
+/* for vmm_fpu.c and vmm.c */
+#define start_emulating()       __asm __volatile( \
+		                                    "smsw %%ax; orb %0,%%al; lmsw %%ax" \
+		                                    : : "n" (CR0_TS) : "ax")
+#define stop_emulating()        __asm __volatile("clts")
+
 union savefpu *fpu_save_area_alloc(void);
 void fpu_save_area_free(union savefpu *fsa);
 void fpu_save_area_reset(union savefpu *fsa);

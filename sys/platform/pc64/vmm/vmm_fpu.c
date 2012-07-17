@@ -44,11 +44,6 @@
 
 #define DO_NOT_USE_FPU_FOR_TMP 1
 
-#define start_emulating()       __asm __volatile( \
-		                                    "smsw %%ax; orb %0,%%al; lmsw %%ax" \
-		                                    : : "n" (CR0_TS) : "ax")
-#define stop_emulating()        __asm __volatile("clts")
-
 
 typedef struct objcache *objcache_t;
 #define uma_zone_t      objcache_t

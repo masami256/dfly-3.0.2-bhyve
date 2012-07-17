@@ -31,6 +31,34 @@
 #ifdef _KERNEL
 
 #include <sys/thread2.h>
+#include <machine/specialreg.h>
+
+/* 
+ * for vmm.c
+ * http://fxr.watson.org/fxr/source/amd64/include/vm.h?v=FREEBSD9#L36
+ */
+#define VM_MEMATTR_UNCACHEABLE		PAT_UNCACHEABLE
+#define VM_MEMATTR_WRITE_BACK		PAT_WRITE_BACK
+
+/*
+ * also for vmm.c 
+ * Basically PCB_XXX macros are in sys/platform/pc64/include/pcb.h but I don't want to add it in the file.
+ * This macro came from FreeBSD's amd64/include/pcb.h
+ * see
+ * http://fxr.watson.org/fxr/source/amd64/include/pcb.h?v=FREEBSD9#L75
+ */
+#define PCB_FULL_IRET   0x01    /* full iret is required */
+
+/*
+ * This is simple version of set_pcb_flags().
+ * If it has a problem, it need to use FreeBSD's set_pcb_flags().
+ * http://fxr.watson.org/fxr/source/amd64/include/pcb.h?v=FREEBSD9;im=bigexcerpts#L114
+ */
+static __inline void
+set_pcb_flags(struct pcb *pcb, const u_int flags)
+{
+	pcb->pcb_flags |= flags;
+}
 
 /*
  * Wrapper function for smp_rendezvous().
