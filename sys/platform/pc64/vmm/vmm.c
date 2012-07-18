@@ -469,6 +469,7 @@ vm_get_pinning(struct vm *vm, int vcpuid, int *cpuid)
 int
 vm_set_pinning(struct vm *vm, int vcpuid, int host_cpuid)
 {
+#if 0
 	struct thread *td;
 
 	if (vcpuid < 0 || vcpuid >= VM_MAXCPU)
@@ -498,6 +499,15 @@ vm_set_pinning(struct vm *vm, int vcpuid, int host_cpuid)
 	VCPU_PIN(vm, vcpuid, host_cpuid);
 
 	return (0);
+#else
+	if (host_cpuid < 0) {
+		VCPU_UNPIN(vm, vcpuid);
+		return (0);
+	}
+
+	VCPU_PIN(vm, vcpuid, host_cpuid);
+	return (0);
+#endif
 }
 
 static void
@@ -540,7 +550,7 @@ vm_run(struct vm *vm, struct vm_run *vmrun)
 	pcb = curthread->td_pcb;
 	set_pcb_flags(pcb, PCB_FULL_IRET);
 
-	vcpu->hostcpu = curcpu;
+	vcpu->hostcpu = mycpuid;
 
 	restore_guest_msrs(vm, vcpuid);	
 	restore_guest_fpustate(vcpu);
