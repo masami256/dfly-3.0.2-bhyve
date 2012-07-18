@@ -505,7 +505,7 @@ vm_set_pinning(struct vm *vm, int vcpuid, int host_cpuid)
 		return (0);
 	}
 
-	VCPU_PIN(vm, vcpuid, host_cpuid);
+	VCPU_PIN(vm, vcpuid, mycpuid);
 	return (0);
 #endif
 }
