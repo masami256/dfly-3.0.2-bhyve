@@ -41,7 +41,7 @@
 #include <sys/ioccom.h>
 #include <sys/mman.h>
 #include <sys/uio.h>
-
+#include <sys/device.h>
 #include <vm/vm.h>
 #include <vm/pmap.h>
 
@@ -53,6 +53,13 @@
 #include "vmm_stat.h"
 #include "io/ppt.h"
 #include <machine/vmm_dev.h>
+
+/*
+ * these came from FreeBSD sys/conf.h
+ * http://fxr.watson.org/fxr/source/sys/conf.h?v=FREEBSD9;im=excerpts#L184
+ */
+#define D_VERSION_02    0x28042009      /* Add d_mmap_single */
+#define D_VERSION       D_VERSION_02
 
 struct vmmdev_softc {
 	struct vm	*vm;		/* vm instance cookie */
@@ -381,7 +388,7 @@ vmmdev_destroy(struct vmmdev_softc *sc)
 	SLIST_REMOVE(&head, sc, vmmdev_softc, link);
 	destroy_dev(sc->cdev);
 	vm_destroy(sc->vm);
-	free(sc, M_VMMDEV);
+	kfree(sc, M_VMMDEV);
 }
 
 static int
@@ -445,7 +452,7 @@ sysctl_vmm_create(SYSCTL_HANDLER_ARGS)
 		return (EINVAL);
 	}
 
-	sc = malloc(sizeof(struct vmmdev_softc), M_VMMDEV, M_WAITOK | M_ZERO);
+	sc = kmalloc(sizeof(struct vmmdev_softc), M_VMMDEV, M_WAITOK | M_ZERO);
 	sc->vm = vm;
 	sc->cdev = make_dev(&vmmdevsw, 0, UID_ROOT, GID_WHEEL, 0600,
 			    "vmm/%s", buf);
