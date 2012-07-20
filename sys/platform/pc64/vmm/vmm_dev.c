@@ -42,6 +42,9 @@
 #include <sys/mman.h>
 #include <sys/uio.h>
 #include <sys/device.h>
+#include <sys/mutex2.h>
+#include <sys/queue.h>
+
 #include <vm/vm.h>
 #include <vm/pmap.h>
 
@@ -53,6 +56,15 @@
 #include "vmm_stat.h"
 #include "io/ppt.h"
 #include <machine/vmm_dev.h>
+
+/* 
+ * This macro came from FreeBSD
+ * http://fxr.watson.org/fxr/source/sys/queue.h?v=FREEBSD9#L168
+ */
+#define SLIST_FOREACH_SAFE(var, head, field, tvar)                      \
+         for ((var) = SLIST_FIRST((head));                               \
+             (var) && ((tvar) = SLIST_NEXT((var), field), 1);            \
+             (var) = (tvar))
 
 /*
  * these came from FreeBSD sys/conf.h
@@ -416,9 +428,9 @@ sysctl_vmm_destroy(SYSCTL_HANDLER_ARGS)
 SYSCTL_PROC(_hw_vmm, OID_AUTO, destroy, CTLTYPE_STRING | CTLFLAG_RW,
 	    NULL, 0, sysctl_vmm_destroy, "A", NULL);
 
-static struct cdevsw vmmdevsw = {
-	.d_name		= "vmmdev",
-	.d_version	= D_VERSION,
+static struct dev_ops vmmdevsw = {
+	.head.name	= "vmmdev",
+	.head.maj	= D_VERSION,
 	.d_ioctl	= vmmdev_ioctl,
 	.d_mmap		= vmmdev_mmap,
 	.d_read		= vmmdev_rw,
@@ -468,7 +480,7 @@ SYSCTL_PROC(_hw_vmm, OID_AUTO, create, CTLTYPE_STRING | CTLFLAG_RW,
 void
 vmmdev_init(void)
 {
-	mtx_init(&vmmdev_mtx, "vmm device mutex", NULL, MTX_DEF);
+	mtx_init(&vmmdev_mtx);
 }
 
 void
