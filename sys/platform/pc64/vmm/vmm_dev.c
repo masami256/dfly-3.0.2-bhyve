@@ -161,8 +161,23 @@ vmmdev_rw(struct cdev *cdev, struct uio *uio, int flags)
 }
 
 static int
+vmmdev_read(struct dev_read_args *ap)
+{
+	return vmmdev_rw(ap->a_head.a_dev, ap->a_uio, ap->a_ioflag);
+}
+
+static int 
+vmmdev_write(struct dev_write_args *ap)
+{
+	return vmmdev_rw(ap->a_head.a_dev, ap->a_uio, ap->a_ioflag);
+}
+
+static int
+#if 0
 vmmdev_ioctl(struct cdev *cdev, u_long cmd, caddr_t data, int fflag,
 	     struct thread *td)
+#endif
+vmmdev_ioctl(struct dev_ioctl_args *ap)
 {
 	int error, vcpu;
 	struct vmmdev_softc *sc;
@@ -181,9 +196,11 @@ vmmdev_ioctl(struct cdev *cdev, u_long cmd, caddr_t data, int fflag,
 	struct vm_nmi *vmnmi;
 	struct vm_stats *vmstats;
 	struct vm_stat_desc *statdesc;
+	caddr_t data = ap->a_data;
+	u_long cmd = ap->a_cmd;
 
 	mtx_lock(&vmmdev_mtx);
-	sc = vmmdev_lookup2(cdev);
+	sc = vmmdev_lookup2(ap->a_head.a_dev);
 	if (sc == NULL) {
 		mtx_unlock(&vmmdev_mtx);
 		return (ENXIO);
@@ -432,8 +449,8 @@ static struct dev_ops vmmdevsw = {
 	.head.maj	= D_VERSION,
 	.d_ioctl	= vmmdev_ioctl,
 	.d_mmap		= vmmdev_mmap,
-	.d_read		= vmmdev_rw,
-	.d_write	= vmmdev_rw,
+	.d_read		= vmmdev_read,
+	.d_write	= vmmdev_write,
 };
 
 static int
