@@ -364,10 +364,6 @@ done:
 }
 
 static int
-#if 0
-vmmdev_mmap(struct cdev *cdev, vm_ooffset_t offset, vm_paddr_t *paddr,
-    int nprot, vm_memattr_t *memattr)
-#endif
 vmmdev_mmap(struct dev_mmap_args *ap)
 {
 	int error;
