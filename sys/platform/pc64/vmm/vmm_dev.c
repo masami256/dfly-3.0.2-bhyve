@@ -364,8 +364,11 @@ done:
 }
 
 static int
+#if 0
 vmmdev_mmap(struct cdev *cdev, vm_ooffset_t offset, vm_paddr_t *paddr,
     int nprot, vm_memattr_t *memattr)
+#endif
+vmmdev_mmap(struct dev_mmap_args *ap)
 {
 	int error;
 	struct vmmdev_softc *sc;
@@ -373,10 +376,10 @@ vmmdev_mmap(struct cdev *cdev, vm_ooffset_t offset, vm_paddr_t *paddr,
 	error = -1;
 	mtx_lock(&vmmdev_mtx);
 
-	sc = vmmdev_lookup2(cdev);
-	if (sc != NULL && (nprot & PROT_EXEC) == 0) {
-		*paddr = vm_gpa2hpa(sc->vm, (vm_paddr_t)offset, PAGE_SIZE);
-		if (*paddr != (vm_paddr_t)-1)
+	sc = vmmdev_lookup2(ap->a_head.a_dev);
+	if (sc != NULL && (ap->a_nprot & PROT_EXEC) == 0) {
+		ap->a_result= (int) vm_gpa2hpa(sc->vm, (vm_paddr_t)ap->a_offset, PAGE_SIZE);
+		if (ap->a_result != -1)
 			error = 0;
 	}
 
