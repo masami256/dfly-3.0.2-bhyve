@@ -173,10 +173,6 @@ vmmdev_write(struct dev_write_args *ap)
 }
 
 static int
-#if 0
-vmmdev_ioctl(struct cdev *cdev, u_long cmd, caddr_t data, int fflag,
-	     struct thread *td)
-#endif
 vmmdev_ioctl(struct dev_ioctl_args *ap)
 {
 	int error, vcpu;
