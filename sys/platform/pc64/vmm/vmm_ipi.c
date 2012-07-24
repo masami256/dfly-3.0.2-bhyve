@@ -35,11 +35,11 @@
 #include <sys/bus.h>
 
 #include <machine/intr_machdep.h>
-#include <machine/apicvar.h>
 #include <machine/segments.h>
 #include <machine/md_var.h>
 #include <machine/smp.h>
 
+#include <machine_base/apic/apicvar.h>
 #include <machine/vmm.h>
 #include "vmm_ipi.h"
 
@@ -81,7 +81,7 @@ vmm_ipi_init(void)
 	}
 	
 	if (ipinum != IPI_AST && bootverbose) {
-		printf("vmm_ipi_init: installing ipi handler to interrupt "
+		kprintf("vmm_ipi_init: installing ipi handler to interrupt "
 		       "vcpus at vector %d\n", ipinum);
 	}
 }
@@ -98,6 +98,6 @@ vm_interrupt_hostcpu(struct vm *vm, int vcpu)
 {
 	int hostcpu;
 
-	if (vcpu_is_running(vm, vcpu, &hostcpu) && hostcpu != curcpu)
+	if (vcpu_is_running(vm, vcpu, &hostcpu) && hostcpu != mycpuid)
 		ipi_cpu(hostcpu, ipinum);
 }
