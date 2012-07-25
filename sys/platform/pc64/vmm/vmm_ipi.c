@@ -45,15 +45,23 @@
 
 extern inthand_t IDTVEC(rsvd), IDTVEC(justreturn);
 
+/* 
+ * DragonFly BSD dosen't have IPI_AST, APIC_IPI_INTS and
+ * APIC_SPURIOUS_INT so define them here.
+ */
+#define IPI_AST 0
+#define APIC_IPI_INTS 243
+#define APIC_SPURIOUS_INT 255
+
 /*
  * The default is to use the IPI_AST to interrupt a vcpu.
  */
-static int ipinum = IPI_AST;
+static int ipinum[MAXCPU] = { IPI_AST };
 
 CTASSERT(APIC_SPURIOUS_INT == 255);
 
-void
-vmm_ipi_init(void)
+static void
+vmm_ipi_init2(int cpu)
 {
 	int idx;
 	uintptr_t func;
@@ -70,27 +78,42 @@ vmm_ipi_init(void)
 	 */
 	idx = APIC_SPURIOUS_INT;
 	while (--idx >= APIC_IPI_INTS) {
-		ip = &idt[idx];
+		ip = &idt_arr[cpu][idx];
 		func = ((long)ip->gd_hioffset << 16 | ip->gd_looffset);
 		if (func == (uintptr_t)&IDTVEC(rsvd)) {
-			ipinum = idx;
-			setidt(ipinum, IDTVEC(justreturn), SDT_SYSIGT,
-			       SEL_KPL, 0);
+			ipinum[cpu] = idx;
+			setidt(ipinum[cpu], IDTVEC(justreturn), SDT_SYSIGT,
+			       SEL_KPL, 0, cpu);
 			break;
 		}
 	}
 	
-	if (ipinum != IPI_AST && bootverbose) {
+	if (ipinum[cpu] != IPI_AST && bootverbose) {
 		kprintf("vmm_ipi_init: installing ipi handler to interrupt "
-		       "vcpus at vector %d\n", ipinum);
+		       "vcpus at vector %d\n", ipinum[cpu]);
+	}
+}
+
+void
+vmm_ipi_init(void)
+{
+	int cpu;
+
+	/* ncpus come from sys/ststm.h */
+	for (cpu = 0; cpu < ncpus; cpu++) {
+		vmm_ipi_init2(cpu);
 	}
 }
 
 void
 vmm_ipi_cleanup(void)
 {
-	if (ipinum != IPI_AST)
-		setidt(ipinum, IDTVEC(rsvd), SDT_SYSIGT, SEL_KPL, 0);
+	int cpu;
+	
+	for (cpu = 0; cpu < ncpus; cpu++) {
+		if (ipinum[cpu] != IPI_AST)
+			setidt(ipinum[cpu], IDTVEC(rsvd), SDT_SYSIGT, SEL_KPL, 0, cpu);
+	}
 }
 
 void
