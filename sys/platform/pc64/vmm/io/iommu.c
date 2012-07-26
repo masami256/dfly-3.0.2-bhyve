@@ -133,8 +133,10 @@ iommu_init(void)
 
 	if (vmm_is_intel())
 		ops = &iommu_ops_intel;
+#if 0
 	else if (vmm_is_amd())
 		ops = &iommu_ops_amd;
+#endif
 	else
 		ops = NULL;
 
