@@ -30,6 +30,7 @@
 #define	_VMX_CPUFUNC_H_
 
 #include <sys/cdefs.h>
+#include <sys/thread2.h>
 
 struct vmcs;
 
