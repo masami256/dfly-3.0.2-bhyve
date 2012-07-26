@@ -32,6 +32,7 @@
 #include <sys/param.h>
 #include <sys/lock.h>
 #include <sys/mutex.h>
+#include <sys/mutex2.h>
 #include <sys/linker.h>
 #include <sys/systm.h>
 #include <sys/malloc.h>
@@ -136,7 +137,7 @@ vmm_mem_steal_memory(void)
 			maxaddr = base + length;
 
 		if (0 && bootverbose) {
-			printf("vmm_mem_populate: index %d, base 0x%0lx, "
+			kprintf("vmm_mem_populate: index %d, base 0x%0lx, "
 			       "length %ld\n",
 			       nsegs, vmm_mem_avail[nsegs].base,
 			       vmm_mem_avail[nsegs].length);
@@ -144,7 +145,7 @@ vmm_mem_steal_memory(void)
 
 		nsegs++;
 		if (nsegs >= VMM_MEM_MAXSEGS) {
-			printf("vmm_mem_populate: maximum number of vmm memory "
+			kprintf("vmm_mem_populate: maximum number of vmm memory "
 			       "segments reached!\n");
 			return (ENOSPC);
 		}
@@ -177,7 +178,7 @@ vmm_mem_direct_map(vm_paddr_t start, vm_paddr_t end)
 	 * Get the page directory pointer page that contains the direct
 	 * map address mappings.
 	 */
-	pml4p = kernel_pmap->pm_pml4;
+	pml4p = kernel_pmap.pm_pml4;
 	pdp = (pdp_entry_t *)PHYS_TO_DMAP(pml4p[DMPML4I] & ~PAGE_MASK);
 
 	page_attr_bits = PG_RW | PG_V | PG_PS | PG_G;
@@ -196,7 +197,7 @@ vmm_mem_direct_map(vm_paddr_t start, vm_paddr_t end)
 			if (pdp[pdpi] == 0) {
 				pdp[pdpi] = addr | page_attr_bits;
 				if (0 && bootverbose) {
-					printf("vmm_mem_populate: mapping "
+					kprintf("vmm_mem_populate: mapping "
 					       "0x%lx with 1GB page at "
 					       "pdpi %d\n", addr, pdpi);
 				}
@@ -222,7 +223,7 @@ vmm_mem_direct_map(vm_paddr_t start, vm_paddr_t end)
 				 * we do not keep track of the virtual address
 				 * that would be required to free this page.
 				 */
-				pd = malloc(PAGE_SIZE, M_VMM_MEM,
+				pd = kmalloc(PAGE_SIZE, M_VMM_MEM,
 					    M_WAITOK | M_ZERO);
 				if ((uintptr_t)pd & PAGE_MASK) {
 					panic("vmm_mem_populate: page directory"
@@ -232,7 +233,7 @@ vmm_mem_direct_map(vm_paddr_t start, vm_paddr_t end)
 				pdp[pdpi] = vtophys(pd);
 				pdp[pdpi] |= PG_RW | PG_V | PG_U;
 				if (0 && bootverbose) {
-					printf("Creating page directory "
+					kprintf("Creating page directory "
 					       "at pdp index %d for 0x%016lx\n",
 					       pdpi, addr);
 				}
@@ -247,7 +248,7 @@ vmm_mem_direct_map(vm_paddr_t start, vm_paddr_t end)
 			if (pd[pdi] == 0) {
 				pd[pdi] = addr | page_attr_bits;
 				if (0 && bootverbose) {
-					printf("vmm_mem_populate: mapping "
+					kprintf("vmm_mem_populate: mapping "
 					       "0x%lx with 2MB page at "
 					       "pdpi %d, pdi %d\n",
 					       addr, pdpi, pdi);
@@ -300,7 +301,7 @@ vmm_mem_init(void)
 {
 	int error;
 
-	mtx_init(&vmm_mem_mtx, "vmm_mem_mtx", NULL, MTX_DEF);
+	mtx_init(&vmm_mem_mtx);
 
 	error = vmm_mem_populate();
 	if (error)
@@ -406,7 +407,7 @@ vmm_mem_dump(void)
 	for (i = 0; i < vmm_mem_nsegs; i++) {
 		base = vmm_mem_avail[i].base;
 		length = vmm_mem_avail[i].length;
-		printf("%-4d0x%016lx    0x%016lx\n", i, base, base + length);
+		kprintf("%-4d0x%016lx    0x%016lx\n", i, base, base + length);
 	}
 	mtx_unlock(&vmm_mem_mtx);
 }
