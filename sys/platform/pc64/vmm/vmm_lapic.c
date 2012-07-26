@@ -36,7 +36,7 @@
 #include <machine/vmm.h>
 #include "vmm_ipi.h"
 #include "vmm_lapic.h"
-#include "vlapic.h"
+#include <machine_base/vmm/io/vlapic.h>
 
 int
 lapic_write(struct vm *vm, int cpu, u_int offset, uint64_t val)
