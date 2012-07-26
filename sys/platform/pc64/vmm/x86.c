@@ -40,6 +40,15 @@
 
 #define	CPUID_VM_HIGH		0x40000000
 
+/*
+ * These are came from FreeBSD amd64/include/specialreg.h
+ * http://fxr.watson.org/fxr/source/amd64/include/specialreg.h?v=FREEBSD9#L157
+ */
+#define CPUID2_HV       0x80000000
+#define CPUID2_XSAVE    0x04000000
+#define CPUID2_OSXSAVE  0x08000000
+#define CPUID2_AVX      0x10000000
+
 static const char bhyve_id[12] = "BHyVE BHyVE ";
 
 int
