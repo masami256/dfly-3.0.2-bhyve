@@ -53,7 +53,7 @@ vmm_stat_init(void *arg)
 		return;
 
 	if (vstnum >= MAX_VMM_STAT_TYPES) {
-		printf("Cannot accomodate vmm stat type \"%s\"!\n", vst->desc);
+		kprintf("Cannot accomodate vmm stat type \"%s\"!\n", vst->desc);
 		return;
 	}
 
@@ -84,13 +84,13 @@ vmm_stat_alloc(void)
 	
 	size = vstnum * sizeof(uint64_t);
 
-	return (malloc(size, M_VMM_STAT, M_ZERO | M_WAITOK));
+	return (kmalloc(size, M_VMM_STAT, M_ZERO | M_WAITOK));
 }
 
 void
 vmm_stat_free(void *vp)
 {
-	free(vp, M_VMM_STAT);
+	kfree(vp, M_VMM_STAT);
 }
 
 const char *
