@@ -26,7 +26,9 @@
  * $FreeBSD$
  */
 
+#ifndef LOCORE
 #define	LOCORE
+#endif
 
 #include <machine/asmacros.h>
 
