@@ -34,15 +34,21 @@
 
 #include <machine/smp.h>
 #include <machine/specialreg.h>
-#include <x86/apicreg.h>
+#include <machine_base/apic/apicreg.h>
 
+#include <machine_base/vmm/vmm_lapic.h>
 #include <machine/vmm.h>
-#include "vmm_lapic.h"
 #include "vmm_msr.h"
 
 #define	VMM_MSR_F_EMULATE	0x01
 #define	VMM_MSR_F_READONLY	0x02
 #define VMM_MSR_F_INVALID	0x04
+
+/*
+ * This macro come from FreeBSD 10
+ * in http://fxr.watson.org/fxr/source/x86/include/specialreg.h#L404
+ */
+#define APICBASE_X2APIC         0x00000400
 
 struct vmm_msr {
 	int		num;
