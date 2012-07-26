@@ -51,6 +51,7 @@
 #include <machine/globaldata.h>
 
 #include <machine/vmm.h>
+#include <machine/vmm_dist_conv.h>
 #include "../vmm_lapic.h"
 #include "../vmm_msr.h"
 #include "../vmm_ktr.h"

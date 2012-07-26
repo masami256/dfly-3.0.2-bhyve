@@ -44,6 +44,7 @@
 #include <machine/vmparam.h>
 
 #include <machine/vmm.h>
+#include <machine/vmm_dist_conv.h>
 #include "vmx_cpufunc.h"
 #include "vmx_msr.h"
 #include "vmx.h"
