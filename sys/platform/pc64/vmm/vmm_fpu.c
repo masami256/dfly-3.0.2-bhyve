@@ -112,13 +112,10 @@ fpuexit(struct thread *td)
          crit_exit();
 }
 #else
-
-#include <assert.h>
-
 void
 fpuexit(struct thread *td) 
 {
-	assert(0 == 1);
+	panic("It hasn't been implemented yet.");
 }
 
 #endif
