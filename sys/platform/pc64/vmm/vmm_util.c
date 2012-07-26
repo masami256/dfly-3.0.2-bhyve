@@ -75,8 +75,8 @@ vmm_supports_1G_pages(void)
 
 #include <sys/proc.h>
 #include <machine/frame.h>
-#define	DUMP_REG(x)	printf(#x "\t\t0x%016lx\n", (long)(tf->tf_ ## x))
-#define	DUMP_SEG(x)	printf(#x "\t\t0x%04x\n", (unsigned)(tf->tf_ ## x))
+#define	DUMP_REG(x)	kprintf(#x "\t\t0x%016lx\n", (long)(tf->tf_ ## x))
+#define	DUMP_SEG(x)	kprintf(#x "\t\t0x%04x\n", (unsigned)(tf->tf_ ## x))
 void
 dump_trapframe(struct trapframe *tf)
 {
@@ -104,8 +104,4 @@ dump_trapframe(struct trapframe *tf)
 	DUMP_REG(rsp);
 	DUMP_SEG(cs);
 	DUMP_SEG(ss);
-	DUMP_SEG(fs);
-	DUMP_SEG(gs);
-	DUMP_SEG(es);
-	DUMP_SEG(ds);
 }
