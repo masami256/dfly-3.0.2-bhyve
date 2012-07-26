@@ -40,6 +40,8 @@
 #include <machine/smp.h>
 
 #include <machine_base/apic/apicvar.h>
+#include <machine_base/apic/apicreg.h>
+#include <machine_base/apic/lapic.h>
 #include <machine/vmm.h>
 #include "vmm_ipi.h"
 
@@ -122,5 +124,5 @@ vm_interrupt_hostcpu(struct vm *vm, int vcpu)
 	int hostcpu;
 
 	if (vcpu_is_running(vm, vcpu, &hostcpu) && hostcpu != mycpuid)
-		ipi_cpu(hostcpu, ipinum);
+		single_apic_ipi(hostcpu, ipinum[hostcpu], APIC_DELMODE_LOWPRIO);
 }
