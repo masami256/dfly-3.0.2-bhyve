@@ -34,6 +34,7 @@
 #include <sys/malloc.h>
 #include <sys/systm.h>
 #include <sys/cdefs.h>
+#include <sys/cpuset.h>
 
 #include <machine/smp.h>
 #include <machine/clock.h>
@@ -86,6 +87,55 @@ static MALLOC_DEFINE(M_VLAPIC, "vlapic", "vlapic");
 
 #define VLAPIC_VERSION		(16)
 #define VLAPIC_MAXLVT_ENTRIES	(5)
+
+/*
+ * ffsl() is defined in /usr/src/sys/cpu/x86_64/include/cpufunc.h
+ */
+#if 0
+/*
+ * This function come from FreeBSD
+ * http://fxr.watson.org/fxr/source/libkern/ffsl.c?im=10#L39
+ */
+/*
+ * Find First Set bit
+ */
+static int
+ffsl(long mask)
+{
+        int bit;
+
+        if (mask == 0)
+                return (0);
+        for (bit = 1; !(mask & 1); bit++)
+                mask = (unsigned long)mask >> 1;
+        return (bit);
+}
+#endif
+
+/* 
+ * This function come from FreeBSD
+ * http://fxr.watson.org/fxr/source/kern/kern_cpuset.c#L624
+ */
+
+/*
+ * Calculate the ffs() of the cpuset.
+ */
+int
+cpusetobj_ffs(const cpuset_t *set)
+{
+        size_t i;
+        int cbit;
+ 
+        cbit = 0;
+        for (i = 0; i < _NCPUWORDS; i++) {
+                if (set->__bits[i] != 0) {
+                        cbit = ffsl(set->__bits[i]);
+                        cbit += i * _NCPUBITS;
+                        break;
+                }
+        }
+        return (cbit);
+}
 
 struct vlapic {
 	struct vm		*vm;
