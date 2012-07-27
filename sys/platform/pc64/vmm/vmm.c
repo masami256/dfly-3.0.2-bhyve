@@ -658,7 +658,8 @@ vmm_is_pptdev(int bus, int slot, int func)
 
 		cp = cp2;
 	}
-	kfreeenv(val);
+	if (val)
+		kfreeenv(val);
 	return (found);
 }
 
